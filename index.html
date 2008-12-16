@@ -1,10 +1,91 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>dann@github</title>
-  </head>
-  <body>
-    <h1>hello</h1>
-  </body>
-</html>
+<!--
+Design by Free CSS Templates
+http://www.freecsstemplates.org
+Released for free under a Creative Commons Attribution 2.5 License
 
+Name       : Unqualified
+Description: A two-column, fixed-width design.
+Version    : 1.0
+Released   : 20071220
+
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>dann@github</title>
+<meta name="keywords" content="perl web" />
+<meta name="description" content="dann@github" />
+<link href="default.css" rel="stylesheet" type="text/css" media="screen" />
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+    $(function() {
+            var limit = 13        // how many repos to list
+            var login = 'dann'   // your username
+
+            var repos = [], list = $('#sidebar ul li ul')
+
+            $.getJSON('http://github.com/api/v1/json/' + login + '?callback=?', function(data) {
+                $.each(data.user.repositories, function() {
+                    if (!this.fork) repos.push(this)
+                    })
+
+                repos.sort(function(a, b) {
+                    return b.watchers - a.watchers
+                    })
+
+                $.each(repos.slice(0, limit), function() {
+                    list.append('<li><a href="' + this.url + '">' + this.name + '</a></li>')
+                    })
+                })        
+            })
+</script>
+</head>
+<body>
+<!-- start header -->
+<div id="header">
+	<div id="logo">
+		<h1><a href="#">dann@github.com</a></h1>
+	</div>
+	<div id="menu">
+		<ul>
+			<li class="active"><a href="http://github.com/dann">Home</a></li>
+			<li><a href="http://dann.g.hatena.ne.jp/dann">Blog</a></li>
+			<li><a href="http://twitter.com/techmemo">Twitter</a></li>
+			<li><a href="#">About</a></li>
+			<li><a href="#">Contact </a></li>
+		</ul>
+	</div>
+</div>
+<!-- end header -->
+<!-- start page -->
+<div id="page">
+	<!-- start content -->
+	<div id="content">
+		<div class="post">
+			<h1 class="title">Welcome to dann@github</h1>
+			<div class="entry">
+                <p>coooooooool</p>
+            </div>
+		</div>
+	</div>
+	<!-- end content -->
+	<!-- start sidebar -->
+	<div id="sidebar">
+		<ul>
+			<li>
+				<h2>my repos</h2>
+				<ul>
+				</ul>
+			</li>
+		</ul>
+	</div>
+	<!-- end sidebar -->
+</div>
+<!-- end page -->
+<div id="footer">
+	<p>&copy;2007 All Rights Reserved. &nbsp;&bull;&nbsp; Design by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a> &nbsp;&bull;&nbsp; Icons by <a href="http://www.famfamfam.com/">FAMFAMFAM</a>.</p>
+</div>
+</body>
+</html>
