@@ -1,212 +1,193 @@
-<!-- BEGIN start -->
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml11.dtd">
+<!-- BEGIN s5 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title></title>
-<meta name="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Spork v0.20" />
-<link rel='icon' href='favicon.png' />
-<style type="text/css"><!--
-/* BEGIN index.css */
-hr {
-    color: #202040;
-    height: 0px;
-    border-top: 0px;
-    border-bottom: 3px #202040 ridge;
-    border-left: 0px;
-    border-right: 0px;
-}
-
-a:link {
-    color: #123422;
-    text-decoration: none;
-}
-
-a:visited {
-    color: #123333;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-p {
-    font-size: 24pt;
-    margin: 6pt;
-}
-
-div p {
-    font-size: 18pt;
-    margin-top: 12pt;
-    margin-bottom: 12pt;
-    margin-left: 6pt;
-    margin-right: 6pt;
-}
-
-small {
-    font-size: 9pt;
-    font-style: italic;
-}
-
-#topbar {
-    background: hotpink;
-    color: blue;
-    position:absolute;
-    right: 5px;
-    left: 5px;
-    top: 5px;
-    height: 50px;
-}
-
-#bottombar {
-    background: hotpink;
-    color: blue;
-    position: fixed;
-    right: 5px;
-    left: 5px;
-    bottom: 5px;
-    height: 50px;
-    z-index: 0;
-}
-
-.top_spacer {
-    height: 0px;
-    margin: 0px 0px 0px 0px;
-    padding: 1px 0px 0px 0px;
-}
-
-.spacer {
-    bottom: 5px;
-    height: 50px;
-}
-
-#content {
-    background:#fff;
-    margin-left: 20px;
-    margin-right:20px;
-    margin-top: 80px;
-}
-
-
-#logo {
-    position: fixed;
-    right: 40px;
-    bottom: 51px;
-    width: 130px;
-    height: 150px;
-    z-index:3;
-    background-image: url(/logo.png);
-    background-repeat: no-repeat;
-}
-/* END index.css */
-
---></style>
-<script type="text/javascript">
-// BEGIN controls.js
-function nextSlide() {
-    window.location = 'slide1a.html';
-}
-
-function prevSlide() {
-    window.location = '';
-}
-
-function indexSlide() {
-    window.location = 'index.html';
-}
-
-function startSlide() {
-    window.location = 'start.html';
-}
-
-function closeSlide() {
-    window.close();
-}
-
-function handleKey(e) {
-    var key;
-    if (e == null) {
-        // IE
-        key = event.keyCode
-    } 
-    else {
-        // Mozilla
-        if (e.altKey || e.ctrlKey) {
-            return true
-        }
-        key = e.which
-    }
-    switch(key) {
-        case 8: prevSlide(); break
-        case 13: nextSlide(); break
-        case 32: nextSlide(); break
-        case 81: closeSlide(); break
-        case 105: indexSlide(); break
-        case 110: nextSlide(); break
-        case 112: prevSlide(); break
-        case 115: startSlide(); break
-        default: //xxx(e.which)
-    }
-}
-
-document.onkeypress = handleKey
-// END controls.js
-
-</script>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Angelos</title>
+<meta name="generator" content="Spork-S5" />
+<meta name="version" content="Spork-S5 0.04" />
+<meta name="author" content="dann" />
+<link rel="stylesheet" href="ui/slides.css" type="text/css" media="projection" id="slideProj" />
+<link rel="stylesheet" href="ui/opera.css" type="text/css" media="projection" id="operaFix" />
+<link rel="stylesheet" href="ui/print.css" type="text/css" media="print" id="slidePrint" />
+  <link rel="stylesheet" type="text/css" href="" />
+<script src="ui/slides.js" type="text/javascript"></script>
 </head>
 <body>
-<div id="topbar">
-<table width='100%'>
-<tr>
-<td width="13%">Spork</td>
-<td align="center" width="73%">
-    <a accesskey="s" href="start.html">Spork - The Kwiki Way To Do Slideshows</a>
-</td>
-<td align="right" width="13%">
-    &nbsp;
-</td>
-</tr>
-</table>
-</div>
-<!-- END top -->
 
-<div id="content">
-<div class="top_spacer"></div>
-<center>
-<h4>Spork - The Kwiki Way To Do Slideshows</h4>
-<p />
-<h4>Brian Ingerson</h4>
-<h4>ingy@cpan.org</h4>
-<p />
-<h4>Portland, Oregon</h4>
-<h4>March 25nd, 2004</h4>
-</center>
+<div class="layout">
+  <div id="currentSlide"></div>
+  <div id="header"></div>
+  <div id="footer">
+    <h2>dann</h2>
+    <h2>techmemo@gmail.com</h2>
+    <div id="controls"></div>
+  </div>
 </div>
-<!-- BEGIN bottom -->
-<div id="bottombar">
-<table width="100%">
-<tr>
-<td align="left" valign="middle">
-    <div>
-    <a accesskey='p' href="">&lt; &lt; Previous</a> |
-    <a accesskey='i' href="index.html">Index</a> |
-    <a accesskey='n' href="slide1a.html">Next &gt;&gt;</a>
-    </div>
-</td>
-<td align="right" valign="middle">
-    Copyright &copy; 2005 Brian Ingerson
-</td>
-</tr>
-</table>
-</div> 
-<div id="logo"></div>
-<div class="spacer">
-<a name="end"></a>
+
+<div class="slide">
+    <h1>Angelos - The Next Generation WAF</h1>
+    <h2>dann@SoozyCon#7</h2>
+    <h3>18 March, 2009</h3>
 </div>
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h2>最近のPerlのWAF & Perlの動向</h2>
+<ul>
+<li>&#40;HTTP::Engine&#41;++</li>
+
+<ul>
+<li>サーバー抽象化 -  HTTP::Engine, Mojo</li>
+<li>Middleware - HTTP::Engine::Middleare</li>
+</ul>
+<li>Modern Perl</li>
+
+<ul>
+<li>まともなオブジェクトシステム - Mouse/Moose</li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h2>新しいWAF登場への期待(HTTP::EngineベースのWAF)</h2>
+<ul>
+<li>Angelos &#40;dann&#41;</li>
+<li>Ark &#40;typester&#41;</li>
+<li>Catalyst6.x</li>
+<li>jrockwayのWAF</li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h2>What is Angelos?</h2>
+<ul>
+<li>PerlのWAFの拡張性の高さ（何でもプラガブル）を活かしつつ</li>
+<li>Django, Railsのようなフルスタックを実現できる</li>
+<li>WSGIに対応した</li>
+<li>MousefulなWAF</li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h2>Angelosの設計の基本方針</h2>
+<ul>
+<li>コアを小さく</li>
+
+<ul>
+<li>Config, Logger, I18N, Pluginの分離</li>
+</ul>
+<li>適切な箇所を拡張できる</li>
+
+<ul>
+<li>Controller, View, Middleware</li>
+</ul>
+<li>適切なデフォルトセットを提供</li>
+
+<ul>
+<li>Plugin, Middleware</li>
+</ul>
+<li>デフォルトの規約を設ける</li>
+
+<ul>
+<li>Routing, Project Structure, クラス構成</li>
+</ul>
+<li>良いアーキテクチャに自然に&#40;MMVC, Service Classの共有&#41;</li>
+</ul>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h2>AngelosのWAFの基本部分</h2>
+<ul>
+<li>Dispatcher</li>
+
+<ul>
+<li>RESTful dispatcher - HTTP::Router</li>
+</ul>
+<li>Component Loader</li>
+
+<ul>
+<li>DI Container - Bread::Board&#40;?&#41;</li>
+</ul>
+<li>WSGI</li>
+
+<ul>
+<li>HTTP::Engine, HTTP::Engine::Middleware</li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h2>AngelosのWAF周辺機能</h2>
+<ul>
+<li>プラグイン系 </li>
+
+<ul>
+<li>Mouse + MouseX::Object::Pluggable &#40;modifier + α&#41;</li>
+</ul>
+<li>Scaffold + Application Templates</li>
+
+<ul>
+<li>Module::Setup</li>
+</ul>
+<li>CLI</li>
+
+<ul>
+<li>App::Cmd</li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h2>最後に</h2>
+<ul>
+<li>WAF作成は簡単に</li>
+<li>次の世代のWAFに興味のある方は是非 :&#41;</li>
+
+<ul>
+<li><a href="http://github.com/dann/angelos/tree/master">http://github.com/dann/angelos/tree/master</a></li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
 </body>
 </html>
-
-
-<!-- END start -->
+<!-- END s5 -->
