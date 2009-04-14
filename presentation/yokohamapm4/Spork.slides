@@ -1,0 +1,300 @@
+----
+presentation_topic: Angelos 
+presentation_title: Angelosに学ぶ優しいWAFの作り方
+presentation_place: dann@Yokohama.pm#4 
+presentation_date: 17 April, 2009 
+----
+----
+= About me
+* Dann
+* http://dann.g.hatena.ne.jp/dann
+
+---- 
+= 目次
+* Angelosとは？
+* WAFの最小構成要素 
+* WAFの拡張要素
+* まとめ
+
+----
+= What is Angelos?
+* PerlのWAFの拡張性の高さ（何でもプラガブル）を活かしつつ
+* Django, Railsのようなフルスタックを実現できる
+* WSGIに対応した
+* MousefulなWAF
+
+----
+= Angelosをつくり始めた動機
+* Railの様々なすばらしい機構(CoC、フルスタック)
+* PythonのWSGI (HTTP::Engine)
+* Moose
+
+----
+= WAFの最小構成要素
+* Engine
+* Dispatcher
+* Component Loader
+
+----
+= Angelosの最小構成要素部分
+* Dispatcher
+** RESTful dispatcher - HTTP::Router
+* Component Loader
+** DI Container - Bread::Board(?)
+*  Engine
+** HTTP::Engine
+
+----
+= What is Engine - Angelos::Engine 
+リクエストを受けて、レスポンスを返すEngine(サーバー抽象化）
+
+  sub build_engine {
+      my $self            = shift;
+      my $request_handler = $self->request_handler;
+      $request_handler ||= $self->build_request_handler;
+  
+      return HTTP::Engine->new(
+          interface => {
+              module => $self->server,
+              ...
+              request_handler => $request_handler,
+          },
+      );  
+  }
+
+---- 
+= Request Handler - Angelos::Engine::Base
+Engineに渡すrequest handler
+
+  sub handle_request {
+      my ( $self, $req ) = @_; 
+      eval { $self->DISPATCH($req); };
+      if ( my $e = Exception::Class->caught() ) { 
+          $self->HANDLE_EXCEPTION($e);
+      }   
+      return $self->app->res;
+  }
+
+---- 
+= What is Dispatcher 
+== URLとControllerのメソッドのマッピング
+== requestに該当するControllerを探してDispatch
+
+----
+= ディスパッチ処理 - 全体
+reqを受けて、dispatchして、resを返す
+
+  sub DISPATCH {
+      my ( $self, $req ) = @_; 
+      my $dispatch = $self->dispatcher->dispatch($req);
+      ... 
+      $dispatch->run;
+      $c->res;
+  }
+
+----
+= Angelos::Dispatcher 
+== HTTP::Routerでrequestにマッチするrouteを取得
+
+  sub dispatch {
+      my ( $self, $request ) = @_; 
+      my $match = $self->router->match($request);
+      my $dispatch = $self->dispatch_class->new( match => $match );
+      return $dispatch;
+  }
+
+----
+= Angelos::Dispatcher::Dispatch
+== matching情報からControllerを探す 
+== Controllerの該当するActionを実行
+
+    my $controller_instance = $self->find_controller_instance(
+        {   context    => $c, 
+            controller => $controller,
+        }
+    );  
+    $controller_instance->context($c);
+    $controller_instance->_dispatch_action( $action, $params );
+
+----
+= ルーティング定義
+
+  HTTP::Router->define(
+      sub {
+          $_->match('/')->to( { controller => 'Root', action => 'index' } );
+          $_->resources('Book');
+      }   
+  );
+
+----
+= ルーティングテーブル
+
+  .----------------------------------------------------+------------+------------+------------.
+  | path                                               | method     | controller | action     |
+  +----------------------------------------------------+------------+------------+------------+
+  | /                                                  |            | Root       | index      |
+  | /book.{format}                                     | POST       | Books      | create     |
+  | /book                                              | POST       | Books      | create     |
+  | /book.{format}                                     | GET        | Books      | index      |
+  | /book                                              | GET        | Books      | index      |
+  | /book/new.{format}                                 | GET        | Books      | post       |
+  | /book/new                                          | GET        | Books      | post       |
+  | /book/{book_id}.{format}                           | GET        | Books      | show       |
+  | /book.{format}                                     | POST       | Books      | create     |
+  | /book                                              | POST       | Books      | create     |
+  | /book.{format}                                     | GET        | Books      | index      |
+  | /book.{bookk_id}.{format}                          | DELETE     | Books      | destroy    |
+  | /book/{book_id}                                    | DELETE     | Books      | destroy    |
+  | /book/{book_id}.{format}                           | PUT        | Books      | update     |
+  | /book/{book_id}                                    | PUT        | Books      | update     |
+  '----------------------------------------------------+------------+------------+------------'
+
+----
+= Dispatcherの選択肢
+* モジュール
+** HTTP::Router, Path::Dispatcher, HTTPx::Dispatcher
+* HTTP::Router使用の判断
+** URLの設計に分かりやすい規約を作った
+** 柔軟なURL設計よりも分かりやすい規約
+
+----
+= WAFの基本部分完成！
+* これで基本部分は完成です
+* シンプルなWAFは4-5時間あれば作れちゃいます
+
+----
+= WAFの味付け
+* 基本部分ができたら後は味付け
+* 味付けにはポリシーが重要
+
+----
+= Angelosの基本コンセプト
+== 80%の要求には簡単に答えられ、答えられないケースに備えて拡張・置換できるようにする
+
+----
+= これを実現するには？
+== 拡張性
+* コアを小さく、置き換え可能に
+* デフォルトセットの提供
+
+== 理解容易性
+* デフォルトの規約
+
+----
+= コアを小さく、置き換え可能に
+* Pluginによる分離
+* フレームワーク共通部分の分離
+** Config, Logger, I18N, Caching
+
+----
+= 適切な箇所を拡張できる
+* Controller
+* View
+* Middleware
+
+----
+= プラグイン機構
+- ライフサイクルへのHook
+- メソッド生やす系 
+
+----
+= プラグインの実現方法
+* Hook系 
+** Class::Trigger like
+** method modifier系
+
+* メソッドmodif
+
+
+----
+= 適切なデフォルトセットを提供
+* Plugin
+* Middleware
+** Unicode
+* DBIC
+** Unicode, Inflate/Deflate
+
+----
+= デフォルトの規約
+* クラス構成
+* Routing
+* Project Structure
+
+----
+= デフォルト規約が無いと
+- プロジェクト毎に規約がバラバラ
+- 知識の共有すすまず
+
+= クラス構成の規約が無いと...
+- 設計ポリシーがバラバラに...
+- Controllerに処理ベタ書きに...
+
+= クラス構成
+== Web, CLIからのService (+ Logger, Config)の共有
+== MMVC
+
+  Web
+    View
+    Controller
+  CLI
+  Service
+  Model
+
+See CatalystCon#1 :)
+
+= Routingの規約がないと...
+== Controller中にGET, POSTなどが1メソッドに混在したり...
+
+  sub xxx {
+    if(GET) {
+        say 'moooooose';
+    } elsif(POST) {
+        say 'mooooouse';
+    }
+  }
+
+----
+= Routing
+* Railsの規約
+** GET, POST
+
+----
+= Project Structureがないと...
+自分のプロジェクトのディレクトリ構成はxxxです
+* config, sql, template ... 
+
+----
+= Project Structure
+
+  |-- conf
+  |   `-- environments
+  |       |-- development
+  |       |-- production
+  |       `-- testing
+  |-- db
+  |-- lib
+  |-- log
+  |-- share
+  |   |-- po
+  |   `-- root
+  |       |-- static
+  |       |   |-- css
+  |       |   |-- images
+  |       |   `-- js
+  |       `-- views
+  |           |-- layouts
+  |           `-- root
+  |-- t
+  |   |-- integration
+  |   `-- unit
+
+----
+== 最後に
+* WAF作成は簡単に
+* 次の世代のWAFに興味のある方は是非 :)
+** http://github.com/dann/angelos/tree/master
+
+----
+banner_bgcolor: lightblue
+----
+
