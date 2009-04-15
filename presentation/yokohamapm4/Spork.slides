@@ -169,7 +169,7 @@ reqを受けて、dispatchして、resを返す
 ----
 = 拡張部分の優しい作り方
 * 拡張部分のポリシー
-* 拡張の作り方を簡単に
+* 拡張の作り方
 
 ----
 = コアを小さく、置き換え／拡張拡張可能に(Policy)
@@ -264,15 +264,16 @@ etc...
 = 優しい規約の設定の仕方
 規約はプロジェクトで知識を共有する上で重要
 
-* クラス構成
-* Routing
-* Project Structure
++* クラス構成
++* Routing
++* Project Structure
 
 ----
 = クラス構成の規約が無いと...
-- 設計ポリシーがバラバラに...
-- Controllerに処理ベタ書きに...
+* 設計ポリシーがバラバラに...
+* Controllerに処理ベタ書きに...
 
+----
 = クラス構成
 == Web, CLIからのService (+ Logger, Config)の共有
 == MMVC
@@ -284,8 +285,7 @@ etc...
   Service
   Model
 
-See CatalystCon#1 :)
-
+----
 = Routingの規約がないと...
 == Controller中にGET, POSTなどが1メソッドに混在したり...
 
@@ -334,6 +334,14 @@ See CatalystCon#1 :)
   |-- t
   |   |-- integration
   |   `-- unit
+
+----
+= まとめ
+* WAF基本はEngine, Dispatcher, Component Loader
+* WAFの拡張は、
+** 拡張は役割毎の拡張
+** 拡張とデフォルトセットはペアで
+* 知識共有にデフォルトの規約重要 
 
 ----
 = 最後に
