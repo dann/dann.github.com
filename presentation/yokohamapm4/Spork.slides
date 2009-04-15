@@ -1,19 +1,20 @@
 ----
 presentation_topic: Angelos 
-presentation_title: Angelosに学ぶ優しいWAFの作り方
+presentation_title: Angelosで学ぶ優しいWAFの作り方
 presentation_place: dann@Yokohama.pm#4 
 presentation_date: 17 April, 2009 
 ----
 ----
 = About me
 * Dann
+* Creator of Angelos, cpan-packager 
 * http://dann.g.hatena.ne.jp/dann
 
 ---- 
 = 目次
 * Angelosとは？
-* WAFの最小構成要素 
-* WAFの拡張要素
+* 優しいWAFの基本構成要素の作り方 
+* 優しいWAFの味付けの仕方
 * まとめ
 
 ----
@@ -59,7 +60,7 @@ presentation_date: 17 April, 2009
               ...
               request_handler => $request_handler,
           },
-      );  
+      );
   }
 
 ---- 
@@ -150,81 +151,124 @@ reqを受けて、dispatchして、resを返す
   '----------------------------------------------------+------------+------------+------------'
 
 ----
-= Dispatcherの選択肢
-* モジュール
-** HTTP::Router, Path::Dispatcher, HTTPx::Dispatcher
-* HTTP::Router使用の判断
-** URLの設計に分かりやすい規約を作った
-** 柔軟なURL設計よりも分かりやすい規約
-
-----
 = WAFの基本部分完成！
 * これで基本部分は完成です
 * シンプルなWAFは4-5時間あれば作れちゃいます
 
 ----
-= WAFの味付け
+= 優しいWAFの味付けの仕方
 * 基本部分ができたら後は味付け
 * 味付けにはポリシーが重要
 
 ----
-= Angelosの基本コンセプト
-== 80%の要求には簡単に答えられ、答えられないケースに備えて拡張・置換できるようにする
+= 味付けの基本ポリシー
+* コアを小さく、拡張可能に
+* 拡張性とセットのデフォルトセットの提供
+* 規約によるルールの共有
 
 ----
-= これを実現するには？
-== 拡張性
-* コアを小さく、置き換え可能に
-* デフォルトセットの提供
-
-== 理解容易性
-* デフォルトの規約
+= 拡張部分の優しい作り方
+* 拡張部分のポリシー
+* 拡張の作り方を簡単に
 
 ----
-= コアを小さく、置き換え可能に
-* Pluginによる分離
-* フレームワーク共通部分の分離
+= コアを小さく、置き換え／拡張拡張可能に(Policy)
+* Pluginによる拡張
+* フレームワーク共通部分を置き換え可能に
 ** Config, Logger, I18N, Caching
 
 ----
-= 適切な箇所を拡張できる
+= 適切な箇所を拡張できる(Policy)
+拡張できる箇所を制限し、明確に
+
 * Controller
 * View
 * Middleware
 
 ----
-= プラグイン機構
-- ライフサイクルへのHook
-- メソッド生やす系 
+= プラグイン機構の分類
+* ライフサイクルへのHook
+* メソッド生やす系 
 
 ----
 = プラグインの実現方法
 * Hook系 
 ** Class::Trigger like
-** method modifier系
+** Mooseのmethod modifier系
+* メソッド生やす系
+** import
+** 多重継承
+** MouseのRole
+----
+= Angelosでのプラグイン機構の作り方
+== Hook pointは大文字で
+== modifierでHook
+----
+= Hookが定義されているControllerのコード
+Hook pointの明示 
 
-* メソッドmodif
+  sub _dispatch_action {
+      my ( $self, $action, $params ) = @_;
+      ... 
+      $self->_call_filters( $self->before_filters, $action, $params );
+      eval { $self->ACTION( $self->context, $action, $params ); };
+      ... 
+      $self->_call_filters( $self->after_filters, $action, $params );
+  }
 
 
 ----
-= 適切なデフォルトセットを提供
+= プラグインのコード
+== アクションにかかった時間の計測
+  before 'ACTION' => sub {
+      my ( $self, $c, $action, $params ) = @_;
+      $self->__action_start_time( time() );
+  };
+   
+  after 'ACTION' => sub {
+      my ( $self, $c, $action, $params ) = @_;
+      $self->__action_end_time( time() );
+   
+      my $elapsed = $self->__action_end_time - $self->__action_start_time;
+      my $message
+          = "action processing time:\naction: $action \ntime : $elapsed secs\n";
+      $self->log->info($message);
+  };
+
+----
+= MouseのRoleベースのPlugin 
+* メリット
+** hook pointに大してmodifierでbefore, after, aroundに対する処理を定義できる
+** Pluginにメソッドかけば、そのメソッドが生える
+* デメリット 
+** メソッドバッティングの危険性（少し作り方に注意がいる） 
+
+----
+= 適切なデフォルトセットの提供は重要
+== 適切なデフォルトセットがないと
+* Unicode化するためのTipsが乱立
+* Inflate, DeflateするためのTipsが... 
+etc...
+
+----
+= 適切なデフォルトセットって？
+拡張のデフォルトセットを提供する
+
 * Plugin
 * Middleware
 ** Unicode
 * DBIC
-** Unicode, Inflate/Deflate
+** Unicode, Inflate/Deflate etc
 
 ----
-= デフォルトの規約
+= 優しい規約の設定の仕方
+規約はプロジェクトで知識を共有する上で重要
+
 * クラス構成
 * Routing
 * Project Structure
 
 ----
-= デフォルト規約が無いと
-- プロジェクト毎に規約がバラバラ
-- 知識の共有すすまず
-
 = クラス構成の規約が無いと...
 - 設計ポリシーがバラバラに...
 - Controllerに処理ベタ書きに...
@@ -247,16 +291,19 @@ See CatalystCon#1 :)
 
   sub xxx {
     if(GET) {
-        say 'moooooose';
-    } elsif(POST) {
-        say 'mooooouse';
+       ...
+    } elsif (POST) {
+       ...
     }
   }
 
 ----
-= Routing
-* Railsの規約
-** GET, POST
+= Routingの規約
+* Routing系モジュール
+** HTTP::Router, Path::Dispatcher, HTTPx::Dispatcher, Path::Router と色々ある
+* 使ったのはHTTP::Router(ikasam_a++)
+** 柔軟なURL設計よりも分かりやすい規約
+** URL設計に規約を用いることでシンプル化
 
 ----
 = Project Structureがないと...
@@ -289,10 +336,9 @@ See CatalystCon#1 :)
   |   `-- unit
 
 ----
-== 最後に
-* WAF作成は簡単に
-* 次の世代のWAFに興味のある方は是非 :)
-** http://github.com/dann/angelos/tree/master
+= 最後に
+== 次の世代のWAFに興味のある方は是非 :)
+== http://github.com/dann/angelos/tree/master
 
 ----
 banner_bgcolor: lightblue
