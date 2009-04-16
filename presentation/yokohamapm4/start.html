@@ -1,0 +1,852 @@
+<!-- BEGIN s5 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Angelos</title>
+<meta name="generator" content="Spork-S5" />
+<meta name="version" content="Spork-S5 0.04" />
+<meta name="author" content="dann" />
+<link rel="stylesheet" href="ui/slides.css" type="text/css" media="projection" id="slideProj" />
+<link rel="stylesheet" href="ui/opera.css" type="text/css" media="projection" id="operaFix" />
+<link rel="stylesheet" href="ui/print.css" type="text/css" media="print" id="slidePrint" />
+  <link rel="stylesheet" type="text/css" href="" />
+<script src="ui/slides.js" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="layout">
+  <div id="currentSlide"></div>
+  <div id="header"></div>
+  <div id="footer">
+    <h2>dann</h2>
+    <h2>techmemo@gmail.com</h2>
+    <div id="controls"></div>
+  </div>
+</div>
+
+<div class="slide">
+    <h1>Angelosで学ぶ優しいWAFの作り方</h1>
+    <h2>dann@Yokohama.pm#4</h2>
+    <h3>17 April, 2009</h3>
+</div>
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>About me</h1>
+<ul>
+<li>Dann</li>
+<li>Creator of Angelos, cpan-packager </li>
+<li><a href="http://github.com/dann">http://github.com/dann</a> </li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>目次</h1>
+<ul>
+<li>Angelosとは？</li>
+<li>優しいWAFの基本構成要素の作り方 </li>
+<li>優しいWAFの拡張の作り方</li>
+<li>まとめ</li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>What is Angelos?</h1>
+<ul>
+<li>PerlのWAFの拡張性の高さ（何でもプラガブル）を活かしつつ</li>
+<li>他の言語のWAFのいいとこどりをした</li>
+<li>MouseなWAF</li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>他の言語のWAFのGood & Bad</h1>
+<ul>
+<li>PerlのWAF&#40;Catalyst&#41;</li>
+
+<ul>
+<li>Good:  何でもプラガブル</li>
+<li>Bad  : 拡張が多すぎて何使っていいかわかりずらい</li>
+</ul>
+<li>RubyのWAF&#40;Rails&#41;</li>
+
+<ul>
+<li>Good: フルスタックでデフォルトの規約が素晴らしい</li>
+<li>Bad  : プラガブルでなく、いざとなったときに困る</li>
+</ul>
+<li>PythonのWAF</li>
+
+<ul>
+<li>Good: WSGI&#40;サーバ-抽象化+Middleware&#41;が素晴らしい</li>
+</ul>
+<li>JavaのWAF </li>
+
+<ul>
+<li>Good: 構成要素がよい。特にDI。</li>
+<li>Bad  : コンポーネントを繋ぎ込むところが面倒</li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Angelosをつくり始めた動機</h1>
+<h2>各言語のWAFのいいとこどりをしたモダンなWAFを作りたい</h2>
+<ul>
+<li>Perlのプラガブルな機構</li>
+<li>Railの様々なすばらしい機構&#40;CoC、フルスタック&#41;</li>
+<li>PythonのWSGI &#40;HTTP::Engine&#41;</li>
+<li>JavaのDI</li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>優しいWAFの作り方</h1>
+<h2>ここから作り方の解説</h2>
+<h2>まずはWAFの最小構成要素から</h2>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>WAFの最小構成要素</h1>
+<ul>
+<li>Engine - req/res, サーバー抽象化</li>
+<li>Dispatcher - URLとControllerのmapping </li>
+<li>Component Loader - controllerのload + controller検索</li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>基本部分の処理シーケンス</h1>
+<ul>
+<li>リクエスト待ち受け</li>
+
+<ul>
+<li>Engineをnewしてrun</li>
+</ul></ul>
+
+<ul>
+<li>リクエスト/レスポンス</li>
+
+<ul>
+<li>Engineはrequest handlerでrequestを受けて、Dispatcherに処理委譲</li>
+<li>Dispatcherはrequestにmatchするrouteを発見</li>
+<li>Component Loaderは、route情報に含まれるControllerを探す</li>
+<li>Dispatcherは、発見したControllerのインスタンスのaction&#40;method&#41;を実行</li>
+<li>Dispatcherは、controllerで作ったレスポンスを返す</li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Angelosの最小構成要素部分</h1>
+<ul>
+<li>Engine</li>
+
+<ul>
+<li>HTTP::Engine</li>
+</ul>
+<li>Dispatcher</li>
+
+<ul>
+<li>RESTful dispatcher - HTTP::Router</li>
+</ul>
+<li>Component Loader</li>
+
+<ul>
+<li>DI Container - Bread::Board&#40;?&#41;</li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Engine - Angelos::Engine</h1>
+<h2>リクエストを受けて、レスポンスを返すEngine(サーバー抽象化）</h2>
+<h2>このengineをrunしておくことで、request_handlerでrequest受付可能に</h2>
+<pre class="formatter_pre">sub build_engine {
+    my $self            = shift;
+    my $request_handler = $self-&gt;request_handler;
+    $request_handler ||= $self-&gt;build_request_handler;
+
+    return HTTP::Engine-&gt;new&#40;
+        interface =&gt; {
+            module =&gt; $self-&gt;server,
+            ...
+            request_handler =&gt; $request_handler,
+        },
+    &#41;;
+}
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Request Handler - Angelos::Engine::Base</h1>
+<h2>Engineに渡すrequest handler</h2>
+<pre class="formatter_pre">sub handle_request {
+    my &#40; $self, $req &#41; = @_; 
+
+    # requestをdispatcherにdispatch
+    eval { $self-&gt;DISPATCH&#40;$req&#41;; };
+    if &#40; my $e = Exception::Class-&gt;caught&#40;&#41; &#41; { 
+        $self-&gt;HANDLE_EXCEPTION&#40;$e&#41;;
+    } 
+
+    # responseを返す
+    return $self-&gt;context-&gt;res;
+}
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>ディスパッチ処理</h1>
+<p>
+request handlerのDISPATCH処理
+
+</p>
+<pre class="formatter_pre">sub DISPATCH {
+    my &#40; $self, $req &#41; = @_; 
+
+    # reqを受けて、dispatcherにdispatch
+    my $dispatch = $self-&gt;dispatcher-&gt;dispatch&#40;$req&#41;;
+    ... 
+
+    # dispatch処理を実行
+    $dispatch-&gt;run;
+
+    # responseを返す
+    $c-&gt;res;
+}
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Angelos::Dispatcher</h1>
+<pre class="formatter_pre">sub dispatch {
+    my &#40; $self, $request &#41; = @_; 
+
+    # HTTP::Routerでrequestにマッチするrouteを取得
+    my $match = $self-&gt;router-&gt;match&#40;$request&#41;;
+
+    # Dispatch処理を行うクラスに処理を委譲
+    my $dispatch = $self-&gt;dispatch_class-&gt;new&#40; match =&gt; $match &#41;;
+    return $dispatch;
+}
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Angelos::Dispatcher::Dispatch</h1>
+<pre class="formatter_pre"># matching情報からcontroller名取得
+my $controller = $match-&gt;params-&gt;{controller};
+
+# controllerインスタンスをComonentLoaderから検索 
+my $controller_instance = $self-&gt;find_controller_instance&#40;
+    {   context    =&gt; $c, 
+        controller =&gt; $controller,
+    }
+&#41;;  
+...
+# Controllerを実行して、response作って返す
+$controller_instance-&gt;_dispatch_action&#40; $action, $params &#41;;
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>ルーティング定義</h1>
+<h2>conf/routes.pl</h2>
+<p>
+Routing情報を定義
+
+</p>
+<pre class="formatter_pre">HTTP::Router-&gt;define&#40;
+    sub {
+        $_-&gt;match&#40;&#39;/&#39;&#41;-&gt;to&#40; { controller =&gt; &#39;Root&#39;, action =&gt; &#39;index&#39; } &#41;;
+        $_-&gt;resources&#40;&#39;Book&#39;&#41;;
+    }   
+&#41;;
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>ルーティングテーブル</h1>
+<pre class="formatter_pre">.----------------------------------------------------+------------+------------+------------.
+| path                                               | method     | controller | action     |
++----------------------------------------------------+------------+------------+------------+
+| /                                                  |            | Root       | index      |
+| /book.{format}                                     | POST       | Books      | create     |
+| /book                                              | POST       | Books      | create     |
+| /book.{format}                                     | GET        | Books      | index      |
+| /book                                              | GET        | Books      | index      |
+| /book/new.{format}                                 | GET        | Books      | post       |
+| /book/new                                          | GET        | Books      | post       |
+| /book/{book_id}.{format}                           | GET        | Books      | show       |
+| /book.{format}                                     | POST       | Books      | create     |
+| /book                                              | POST       | Books      | create     |
+| /book.{format}                                     | GET        | Books      | index      |
+| /book.{bookk_id}.{format}                          | DELETE     | Books      | destroy    |
+| /book/{book_id}                                    | DELETE     | Books      | destroy    |
+| /book/{book_id}.{format}                           | PUT        | Books      | update     |
+| /book/{book_id}                                    | PUT        | Books      | update     |
+&#39;----------------------------------------------------+------------+------------+------------&#39;
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>WAFの基本部分完成！</h1>
+<ul>
+<li>これで基本部分は完成です</li>
+<li>シンプルなWAFは4-5時間あれば作れちゃいます</li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>優しいWAFの拡張の作り方</h1>
+<ul>
+<li>基本部分ができたら次は拡張&#40;Plugin&#41;です</li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>優しいプラグインの作り方</h1>
+<ul>
+<li>プラグインの種類</li>
+<li>プラグインの実現方法の種類</li>
+<li>Angelosでのプラグインのポリシー</li>
+<li>Angelosでのプラグインの作り方</li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>プラグインの種類</h1>
+<p>
+大きく分けて二つ
+</p>
+<ul>
+<li>ライフサイクルへのHook</li>
+<li>メソッド生やす系 </li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>プラグインの実現方法の種類</h1>
+<ul>
+<li>Hook系 </li>
+
+<ul>
+<li>Class::Trigger</li>
+<li>MouseX::Object::Pluggable</li>
+
+<ul>
+<li>MouseのRole + method modifier</li>
+</ul></ul>
+<li>メソッド生やす系</li>
+
+<ul>
+<li>Exporter</li>
+<li>多重継承</li>
+<li>MouseのRole</li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Angelosで採用したプラグイン機構</h1>
+<ul>
+<li>Hook</li>
+
+<ul>
+<li>Role + method modifier</li>
+</ul>
+<li>メソッド生やす系</li>
+
+<ul>
+<li>MouseのRole</li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Angelosでのプラグインの基本ポリシー</h1>
+<ul>
+<li>コアは小さく、多くのものを置き換え可能に</li>
+<li>Hookポイントが明示的にわかるように</li>
+<li>拡張箇所を限定し、適切な箇所を拡張できるように</li>
+
+<ul>
+<li>Controller</li>
+<li>View</li>
+<li>Middleware</li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Angelosでのプラグイン機構の作り方</h1>
+<ul>
+<li>Pluginを Roleに</li>
+<li>RoleのmodifierでComponentのHook point&#40;メソッド&#41;にHook</li>
+<li>Hook pointの明示はメソッド名の規約&#40;大文字&#41;で</li>
+<li>Plugin&#40;Role&#41;は Component&#40;たとえばController&#41;にwithすることで使う</li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Hookが定義されているControllerのコード</h1>
+<p>
+Hook pointは大文字で明示
+
+</p>
+<pre class="formatter_pre">sub _dispatch_action {
+    my &#40; $self, $action, $params &#41; = @_;
+    ... 
+    $self-&gt;_call_filters&#40; $self-&gt;before_filters, $action, $params &#41;;
+
+    # Hook pointは大文字で
+    eval { $self-&gt;ACTION&#40; $self-&gt;context, $action, $params &#41;; };
+    ... 
+    $self-&gt;_call_filters&#40; $self-&gt;after_filters, $action, $params &#41;;
+}
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>プラグインのコード</h1>
+<h2>プラグインは、MouseのRole</h2>
+<h2>Hook point (ACTION method) にmethod modifierでHook</h2>
+<pre class="formatter_pre">before &#39;ACTION&#39; =&gt; sub {
+    my &#40; $self, $c, $action, $params &#41; = @_;
+    $self-&gt;__action_start_time&#40; time&#40;&#41; &#41;;
+};
+
+after &#39;ACTION&#39; =&gt; sub {
+    my &#40; $self, $c, $action, $params &#41; = @_;
+    $self-&gt;__action_end_time&#40; time&#40;&#41; &#41;;
+
+    my $elapsed = $self-&gt;__action_end_time - $self-&gt;__action_start_time;
+    my $message
+        = &#34;action processing time:\naction: $action \ntime : $elapsed secs\n&#34;;
+    $self-&gt;log-&gt;info&#40;$message&#41;;
+};
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>MouseのRoleベースのPluginのGood & Bad</h1>
+<ul>
+<li>Good</li>
+
+<ul>
+<li>1つのHookに対しHookタイミングの調整が可能&#40;before, after, around&#41;</li>
+<li>Pluginにメソッドかけば、そのメソッドが生えるシンプルな機構</li>
+</ul>
+<li>Bad</li>
+
+<ul>
+<li>メソッドバッティングの危険性（少し作り方に注意がいる） </li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>拡張を提供したときにセットですべきこと</h1>
+<ul>
+<li>適切なデフォルトセットの提供</li>
+
+<ul>
+<li>何かをするときのWAF全体の推奨セットを用意する</li>
+</ul></ul>
+
+<ul>
+<li>デフォルトセットが無いと...</li>
+
+<ul>
+<li>Unicode化するためのTipsが乱立</li>
+<li>Inflate, DeflateするためのTipsが... </li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>適切なデフォルトセットとは</h1>
+<p>
+目的に応じて拡張のデフォルトセットを提供する。Mobileでは, PC用Webアプリなど。
+
+</p>
+<ul>
+<li>Plugin</li>
+<li>Middleware</li>
+
+<ul>
+<li>Unicode</li>
+</ul>
+<li>Model</li>
+
+<ul>
+<li>Unicode, Inflate/Deflate etc</li>
+</ul>
+<li>View</li>
+
+<ul>
+<li>自動Escape</li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Angelosでのデフォルトセットの提供方法</h1>
+<h2>application flavor</h2>
+<p>
+Plugin群などのでフォルトセットを提供するアプリケーションのテンプレート 
+
+</p>
+<pre class="formatter_pre">angelos generate --flavor app
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>まとめ</h1>
+<ul>
+<li>WAFの基本構成要素</li>
+
+<ul>
+<li>Engine, Dispatcher, Component Loader</li>
+</ul>
+<li>WAFの拡張&#40;Plugin&#41;</li>
+
+<ul>
+<li>Component毎に用意</li>
+<li>Pluginとデフォルトセットはペアで</li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>最後に</h1>
+<h2>WAF作りがかつてないほど簡単に!</h2>
+<h2>次の世代のWAFに興味のある方は開発にも是非ご参加ください :)</h2>
+<h2><a href="http://github.com/dann/angelos/tree/master">http://github.com/dann/angelos/tree/master</a></h2>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Bonus Slides</h1>
+<ul>
+<li>優しい規約の作り方</li>
+</ul>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>優しい規約の作り方</h1>
+<p>
+規約はプロジェクトで知識を共有する上で重要
+
+</p>
+<ul>
+<li>クラス構成</li>
+<li>Routing</li>
+<li>Project Structure</li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>クラス構成の規約が無いと...</h1>
+<ul>
+<li>設計ポリシーがバラバラに...</li>
+<li>Controllerに処理ベタ書きに...</li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>クラス構成</h1>
+<h2>Web, CLIからのService (+ Logger, Config)の共有</h2>
+<h2>MMVC</h2>
+<pre class="formatter_pre">Web
+  View
+  Controller
+CLI
+Service
+Model
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Routingの規約がないと...</h1>
+<h2>Controller中にGET, POSTなどが1メソッドに混在したり...</h2>
+<pre class="formatter_pre">sub xxx {
+  if&#40;GET&#41; {
+     ...
+  } elsif &#40;POST&#41; {
+     ...
+  }
+}
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Routingの規約</h1>
+<ul>
+<li>Routing系モジュール</li>
+
+<ul>
+<li>HTTP::Router, Path::Dispatcher, HTTPx::Dispatcher, Path::Router と色々ある</li>
+</ul>
+<li>使ったのはHTTP::Router&#40;ikasam_a++&#41;</li>
+
+<ul>
+<li>柔軟なURL設計よりも分かりやすい規約</li>
+<li>URL設計に規約を用いることでシンプル化</li>
+</ul></ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Project Structureがないと...</h1>
+<p>
+自分のプロジェクトのディレクトリ構成はxxxです
+</p>
+<ul>
+<li>config, sql, template ... </li>
+</ul>
+
+
+</div>
+<!-- END slide -->
+
+
+<!-- BEGIN slide -->
+<div class="slide">
+
+<h1>Project Structure</h1>
+<pre class="formatter_pre">|-- conf
+|   `-- environments
+|       |-- development
+|       |-- production
+|       `-- testing
+|-- db
+|-- lib
+|-- log
+|-- share
+|   |-- po
+|   `-- root
+|       |-- static
+|       |   |-- css
+|       |   |-- images
+|       |   `-- js
+|       `-- views
+|           |-- layouts
+|           `-- root
+|-- t
+|   |-- integration
+|   `-- unit
+</pre>
+
+</div>
+<!-- END slide -->
+
+
+</body>
+</html>
+<!-- END s5 -->
