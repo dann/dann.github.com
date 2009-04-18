@@ -21,30 +21,6 @@ Released   : 20071220
 <style type="text/css" media="screen">
 @import "media/css/site.css";
 </style>
-
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js" type="text/javascript"></script>
-<script type="text/javascript" language="javascript" src="media/js/jquery.dataTables.js"></script>
-<script type="text/javascript">
-    var table;
-    $(document).ready(function() {
-        table = $('#issues').dataTable();
-    });
-
-    $(function() {
-            $.getJSON('http://github.com/api/v2/json/issues/list/dann/angelos/open?callback=?', function(data) {
-                $.each(data.issues, function() {
-                    table.fnAddData([
-                        this.number,
-                        this.title,
-                        this.user,
-                        this.state,
-                        this.votes,
-                        this.created_at
-                    ]);
-                });
-        });
-    });
-</script>
 </head>
 <body>
 <!-- start header -->
@@ -119,4 +95,24 @@ Released   : 20071220
 	<p>&copy;2007 All Rights Reserved. &nbsp;&bull;&nbsp; Design by <a href="http://www.freecsstemplates.org/">Free CSS Templates</a> &nbsp;&bull;&nbsp; Icons by <a href="http://www.famfamfam.com/">FAMFAMFAM</a>.</p>
 </div>
 </body>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript" language="javascript" src="media/js/jquery.dataTables.js"></script>
+<script type="text/javascript">
+    var table;
+    $(document).ready(function() {
+
+        $.getJSON('http://github.com/api/v2/json/issues/list/dann/angelos/open?callback=?', function(data) {
+                $.each(data.issues, function() {
+                    table.fnAddData([
+                        this.number,
+                        this.title,
+                        this.user,
+                        this.state,
+                        this.votes,
+                        this.created_at
+                    ]);
+        });
+        table = $('#issues').dataTable();
+    });
+</script>
 </html>
