@@ -45,6 +45,28 @@ Released   : 20071220
         });
     });
 </script>
+<script type="text/javascript">
+    $(function() {
+            var limit = 13        // how many repos to list
+            var login = 'dann'   // your username
+
+            var repos = [], list = $('#sidebar ul li ul')
+
+            $.getJSON('http://github.com/api/v1/json/' + login + '?callback=?', function(data) {
+                $.each(data.user.repositories, function() {
+                    if (!this.fork) repos.push(this)
+                    })
+
+                repos.sort(function(a, b) {
+                    return b.watchers - a.watchers
+                    })
+
+                $.each(repos.slice(0, limit), function() {
+                    list.append('<li><a href="' + this.url + '">' + this.name + '</a></li>')
+                    })
+                })        
+            })
+</script>
 </head>
 <body>
 <!-- start header -->
@@ -93,9 +115,7 @@ Released   : 20071220
 	<div id="sidebar">
 				<h2>my repos</h2>
 				<ul>
-                    <li>cpan-packager</li>
 				</ul>
-
 	</div>
 	<!-- end sidebar -->
 
