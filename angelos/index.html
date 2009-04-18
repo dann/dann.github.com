@@ -31,7 +31,7 @@ Released   : 20071220
     });
 
     $(function() {
-            $.getJSON('http://github.com/api/v2/json/issues/list/dann/angelos/open', function(data) {
+            $.getJSON('http://github.com/api/v2/json/issues/list/dann/angelos/open?callback=?', function(data) {
                 $.each(data.issues, function() {
                     table.fnAddData([
                         this.position,
