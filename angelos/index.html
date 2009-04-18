@@ -28,7 +28,7 @@ Released   : 20071220
     var table;
     $(document).ready(function() {
         table = $('#issues').dataTable();
-    );
+    });
 
     $(function() {
             $.getJSON('http://github.com/api/v2/json/issues/list/dann/angelos/open', function(data) {
